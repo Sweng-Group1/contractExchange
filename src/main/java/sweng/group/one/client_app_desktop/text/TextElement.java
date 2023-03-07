@@ -25,7 +25,7 @@ public class TextElement extends PresElement {
 		Font validFont = (loadedFont != null) ? new Font(loadedFont.getFontName(), Font.PLAIN, fontSizePt)
 				: new Font("Arial", Font.PLAIN, fontSizePt);
 
-		this.component = new JLabel(text);
+		this.component = new JLabel("<html>" + text + "</html>");
 		this.component.setForeground(Colour);
 		this.component.setFont(validFont);
 	}

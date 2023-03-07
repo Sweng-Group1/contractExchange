@@ -34,7 +34,7 @@ public class TextElementTest {
 			JLabel component = (JLabel) jComponent;
 
 			// Check attributes
-			assertEquals(CONTENT, component.getText());
+			assertEquals("<html>" + CONTENT + "</html>", component.getText());
 			assertEquals(FONT, component.getFont().getFontName());
 			assertEquals(FONT_SIZE, component.getFont().getSize());
 		} else
