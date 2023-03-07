@@ -1,12 +1,14 @@
 package sweng.group.one.client_app_desktop;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
 import sweng.group.one.client_app_desktop.presentation.Slide;
+import sweng.group.one.client_app_desktop.text.TextElement;
 import sweng.group.one.client_app_desktop.presentation.DemoElement;
 import sweng.group.one.client_app_desktop.presentation.Presentation;
 
@@ -33,7 +35,9 @@ public class App
     	slides.add(slide);
     	
     	slide.add(new DemoElement(new Point(slideX/2-1, slideY/2-1), slideX/2, slideY/2, 0, slide));
-    	
+    	TextElement textElement = new TextElement("Quo usque tandem abutere, Catilina, patientia nostra?", "Copperplate", 22, Color.ORANGE, 0,
+    			                               new Point(0, 10), 400, 100, slide);
+    	slide.add(textElement);
     	
     	//create presentation and add to frame
     	Presentation pres = new Presentation(slides);
