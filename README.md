@@ -1,11 +1,36 @@
-# Set-Up
+# Test report
 
-1. Clone the Repository
-2. Open an Eclipse workspace in the folder you cloned to (e.g the parent to "/contractExchange/")
-3. Click "Import projects..."
-4. Go to "General->Existing Projects into Workspace"
-5. Click the "Browse" button next to "Select root directory:"
-6. Select the "contractExchange" folder
-7. Then click "Finish"
+## JUnit
 
-Note when pulling changes from GitHub, you will have to reload the project within Eclipse.
+### Coverage
+
+![coverage](ss/coverage.png)
+
+Lambda invocation untestable as previously disclosed.
+
+In JCanvas:
+
+```java
+protected void paintComponent(Graphics arg0)
+```
+
+is untestable as it required a frame and window to be populated. Outside of the execution time of a JUnit test.
+
+### Tests passing
+
+![pass](ss/pass.png)
+
+## Visual testing
+
+### Line
+
+![line](ss/line.gif)
+
+
+### Rectangle
+
+![rectangle](ss/rectangle.gif)
+
+### Circle
+
+![circle](ss/circle.gif)
