@@ -2,23 +2,16 @@ package sweng.group.one.client_app_desktop;
 
 import java.awt.BorderLayout;
 import java.awt.Point;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 
 import sweng.group.one.client_app_desktop.presentation.Slide;
 import sweng.group.one.client_app_desktop.presentation.DemoElement;
+import sweng.group.one.client_app_desktop.presentation.Presentation;
 
 /*
  * This is an example of how a "PresElement" is added to a Slide
- * 
- * 
- * 
- * Note: Due to the nature of GridBagLayout, the "Slide" component may not
- * reach the sides of the JFrame, however the elements you add should reach
- * the edge of the Slide element. The aspect ratio is also not fixed.
- * 
- * These problems are mitigated by displaying the "Slide" in another container;
- * e.g our Presentation element (which you have not been given).
  * 
  */
 public class App 
@@ -26,20 +19,36 @@ public class App
     public static void main(String[] args)
     {
     	//Set up JFrame
-    	JFrame frame = new JFrame("Test Window");
+    	JFrame frame = new JFrame();
     	frame.setSize(800, 400);
     	frame.setVisible(true);
     	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	
-    	//create slide and add to frame
-    	Slide slide = new Slide(80, 40);
-    	frame.add(slide, BorderLayout.CENTER);
+    	int slideX = 800;
+    	int slideY = 400;
     	
-    	//create a DemoElement and add to slide
-    	DemoElement demo = new DemoElement(new Point(40, 0), 40, 20, 0, slide);
-    	slide.add(demo);
+    	//create slide and add elements to it
+    	Slide slide = new Slide(slideX, slideY);
+    	ArrayList<Slide> slides = new ArrayList<>();
+    	slides.add(slide);
     	
-    	//Frame needs to be validated to display anything
+    	slide.add(new DemoElement(new Point(slideX/2-1, slideY/2-1), slideX/2, slideY/2, 0, slide));
+    	
+    	
+    	//create presentation and add to frame
+    	Presentation pres = new Presentation(slides);
+    	
+    	frame.add(pres, BorderLayout.CENTER);
     	frame.validate();
+    	
+    	/*	
+    	 * Hack to get it to properly draw on launch:
+    	 * The issue seems to be with the JFrame taking time to open and
+    	 * the internal items render with a size of 0x0 as the frame has
+    	 * no dimensions
+    	 * 
+    	 * This shouldn't be a problem when not drawing on start
+    	 */
+    	frame.setSize(800, 401);
     }
 }
