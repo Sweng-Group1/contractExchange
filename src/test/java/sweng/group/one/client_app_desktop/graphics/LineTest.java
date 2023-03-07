@@ -22,6 +22,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import sweng.group.one.client_app_desktop.presentation.Slide;
+
+
 public class LineTest {
 	private static final int SLIDE_X = 800;
 	private static final int SLIDE_Y = 400;
