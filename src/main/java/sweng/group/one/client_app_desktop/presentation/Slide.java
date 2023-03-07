@@ -1,42 +1,32 @@
 package sweng.group.one.client_app_desktop.presentation;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
+
 import java.util.ArrayList;
 
-import javax.swing.Box;
 import javax.swing.JPanel;
 
+/**
+ * @author flt515
+ *
+ */
 @SuppressWarnings("serial")
-public class Slide extends JPanel {
+public class Slide extends JPanel implements LayoutManager {
 	
 	private int pointWidth;
 	private int pointHeight;
 	private ArrayList<PresElement> elements;
 
 	//example constructor
-	public Slide(int PtWidth, int PtHeight){
-		super(new GridBagLayout());
-		
+	public Slide(int ptWidth, int ptHeight){
+		super();
+		this.setLayout(this);
 		this.setElements(new ArrayList<>());
-		
-		this.setPointWidth(PtWidth);
-		this.setPointHeight(PtHeight);
-		
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.weightx = 1;
-		gbc.weighty = 1;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		
-		//fill the grid with glue -> sets up grid system
-		for (int x = 0; x < pointWidth; x++) {
-			for (int y = 0; y < pointHeight; y++) {
-				gbc.gridx = x;
-				gbc.gridy = y;
-				this.add(Box.createGlue(), gbc);
-			}
-		}
+		this.setPointWidth(ptWidth);
+		this.setPointHeight(ptHeight);
 		this.validate();
 	}
 	
@@ -53,18 +43,9 @@ public class Slide extends JPanel {
 			throw new IllegalArgumentException("Element the dimensions of this slide");
 		}
 		
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.NORTHWEST;
-		gbc.fill = GridBagConstraints.BOTH;
-		gbc.weightx = 1;
-		gbc.weighty = 1;
-		gbc.gridx = element.pos.x;
-		gbc.gridy = element.pos.y;
-		gbc.gridwidth = element.width;
-		gbc.gridheight = element.height;
-		
-		this.add(element.component, gbc);
+		this.add(element.component);
 		this.getElements().add(element);
+		element.component.validate();
 	}
 	
 	public void displaySlide() {
@@ -95,5 +76,73 @@ public class Slide extends JPanel {
 
 	public void setElements(ArrayList<PresElement> elements) {
 		this.elements = elements;
+	}
+	
+	/**
+	 * Needed by LayoutManager
+	 */
+	@Override
+	public void addLayoutComponent(String name, Component comp) {
+	}
+
+	/**
+	 * Needed by LayoutManager
+	 */
+	@Override
+	public void removeLayoutComponent(Component comp) {
+	}
+
+	/**
+	 *	Finds the preferred layout size for a given parent container (with a fixed aspect ratio)
+	 *
+	 *	@param parent: The parent container for the layout to be relative to
+	 *
+	 *	@return Dimension of preferred layout within parent
+	 */
+	@Override
+	public Dimension preferredLayoutSize(Container parent) {
+		int slideX = getPointWidth();
+		int slideY = getPointHeight();
+		int w = parent.getWidth();
+		int h = parent.getHeight();
+		
+		float slideAspectRatio = (float)slideX/slideY;
+		float presAspectRatio = (float)w/h;
+		
+		Dimension layoutSize = null;
+		if(slideAspectRatio >= presAspectRatio) {
+			layoutSize = new Dimension(w, (int) (w/slideAspectRatio));
+		}
+		else {
+			layoutSize = new Dimension((int) (h*slideAspectRatio), h);
+		}
+		return layoutSize;
+	}
+
+	@Override
+	public Dimension minimumLayoutSize(Container parent) {
+		return preferredLayoutSize(parent);
+	}
+
+	/**
+	 * Set the bounds of children components
+	 */
+	@Override
+	public void layoutContainer(Container parent) {
+		float w = parent.getWidth();
+		float h = parent.getHeight();
+		
+		float cellW = w/pointWidth;
+		float cellH = h/pointHeight;
+		
+		for(PresElement e : elements) {
+			float eWidth = e.width * cellW;
+			float eHeight = e.height * cellH;
+			
+			float eX = e.pos.x * cellW;
+			float eY = e.pos.y * cellH;
+			
+			e.component.setBounds((int)eX, (int)eY, (int)eWidth, (int)eHeight);
+		}
 	}
 }
