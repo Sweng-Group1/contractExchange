@@ -15,6 +15,13 @@ import sweng.group.one.client_app_desktop.presentation.Slide;
 
 import java.awt.MultipleGradientPaint.CycleMethod;
 
+/**
+ * The “Circle” class draws a circle of a given radius and colour at a given
+ * position on a “Slide” object.
+ * 
+ * @author joe2k01
+ *
+ */
 public class Circle extends Shape {
 	// Shadow parameters to be accessed in CanvasOperation
 	private final int radius, containerWidth, shadowDx, shadowDy, shadowBlurRadius;
@@ -26,22 +33,30 @@ public class Circle extends Shape {
 	// Access to gradient paint for testing
 	private Paint gradient;
 
+	/**
+	 * Draws the circle.
+	 * 
+	 * @param g2d Graphics2D object to draw the circle with.
+	 */
 	public void drawCircle(Graphics2D g2d) {
 		Stroke previousStroke = g2d.getStroke();
 		Paint previousPaint = g2d.getPaint();
 
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+		// Get bounding box
 		Rectangle r = g2d.getClip().getBounds();
 
 		int borderWidth = 0;
 		int halfBorderWidth = 0;
 
+		// Calculate border parameters
 		if (border != null) {
 			borderWidth = (int) (border.getBorderWidth() * (slide.getWidth() / (float) slide.getPointWidth()));
 			halfBorderWidth = borderWidth / 2;
 		}
 
+		// Map parameters to slide coordinates and apply border padding
 		int radiusPx = radius * Math.min(r.width, r.height) / containerWidth;
 		int diameterPx = radiusPx * 2;
 		int x = r.width / 2 - radiusPx + halfBorderWidth;
@@ -124,6 +139,18 @@ public class Circle extends Shape {
 		g2d.setStroke(previousStroke);
 	}
 
+	/**
+	 * Circle constructor.
+	 * 
+	 * @param pos        Coordinate of the centre of the circle on the parent
+	 *                   “Slide” class.
+	 * @param radius     Radius of the circle, relative to the centre of the circle.
+	 * @param duration   Duration.
+	 * @param slide      Slide owning the circle.
+	 * @param fillColour Colour of the fill of the shape.
+	 * @param border     Circle's border.
+	 * @param shadow     Circle's shadow.
+	 */
 	public Circle(Point pos, int radius, float duration, Slide slide, Color fillColour, Border border, Shadow shadow) {
 		super(new Point(pos.x - radius, pos.y - radius), (int) Math.round(2.5 * radius), (int) Math.round(2.5 * radius),
 				duration, slide, fillColour, border, shadow);

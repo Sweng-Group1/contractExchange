@@ -12,6 +12,13 @@ import java.awt.Stroke;
 
 import sweng.group.one.client_app_desktop.presentation.Slide;
 
+/**
+ * The “Rectangle” class draws a rectangle of given dimensions on a “Slide”
+ * object, with the possibility of a border and shadow.
+ * 
+ * @author joe2k01
+ *
+ */
 public class Rectangle extends Shape {
 
 	// Shadow parameters to be accessed in CanvasOperation
@@ -24,10 +31,16 @@ public class Rectangle extends Shape {
 	// Access to gradient paint for testing
 	private Paint gradient;
 
+	/**
+	 * Draws the rectangle.
+	 * 
+	 * @param g2d Graphics2D object to draw the rectangle with.
+	 */
 	public void drawRect(Graphics2D g2d) {
 		Stroke previousStroke = g2d.getStroke();
 		Paint previousPaint = g2d.getPaint();
 
+		// Get bounding box
 		java.awt.Rectangle r = g2d.getClip().getBounds();
 
 		// Map shadow blur and work out padding
@@ -117,6 +130,20 @@ public class Rectangle extends Shape {
 		g2d.setStroke(previousStroke);
 	}
 
+	/**
+	 * Rectangle constructor.
+	 * 
+	 * @param pos        Coordinate of the top left of the body of the rectangle.
+	 * @param rectWidth  Width (relative to the parent Slide class) of the body of
+	 *                   the rectangle.
+	 * @param rectHeight Height (relative to the parent Slide class) of the body of
+	 *                   the rectangle.
+	 * @param duration   Duration.
+	 * @param slide      Slide owning the rectangle.
+	 * @param fillColour Colour of the fill of the shape.
+	 * @param border     Rectangle's border.
+	 * @param shadow     Rectangle's shadow.
+	 */
 	public Rectangle(Point pos, int rectWidth, int rectHeight, float duration, Slide slide, Color fillColour,
 			Border border, Shadow shadow) {
 		super(pos, rectWidth, rectHeight, duration, slide, fillColour, border, shadow);
