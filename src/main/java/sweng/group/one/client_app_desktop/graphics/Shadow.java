@@ -27,12 +27,6 @@ public class Shadow {
 		this.shadowDx = shadowDx;
 		this.shadowDy = shadowDy;
 		this.shadowBlurRadius = shadowBlurRadius;
-
-		// 100 because of rectangle meaning 100% of parent.
-		if (shadowBlurRadius > 100 || shadowBlurRadius < 0) {
-			throw new IllegalArgumentException("The shadow blur radius cannot exceed 100 and cannot be less than 0.");
-		}
-
 	}
 
 	public Color getShadowColour() {
