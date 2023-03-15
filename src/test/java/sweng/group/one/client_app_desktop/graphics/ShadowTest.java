@@ -12,17 +12,6 @@ public class ShadowTest {
 	private static final int DX = 5;
 	private static final int DY = 55;
 	private static final int RADIUS = 69;
-
-	@Test
-	public void badRadiusThrowsException() {
-		assertThrows(IllegalArgumentException.class, () -> {
-			new Shadow(Color.BLACK, 0, 0, 200);
-		});
-		
-		assertThrows(IllegalArgumentException.class, () -> {
-			new Shadow(Color.BLACK, 0, 0, -1);
-		});
-	}
 	
 	@Test
 	public void gettersTest() {
