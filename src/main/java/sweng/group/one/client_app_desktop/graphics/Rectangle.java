@@ -67,7 +67,7 @@ public class Rectangle extends Shape {
 			int mShadowDx = relativeToSlide(shadowDx);
 			int mShadowDy = relativeToSlide(shadowDy);
 			int mShadowBlurRadius = relativeToSlide(shadowBlurRadius);
-			
+
 			// Pad rectangle to shadow
 			x += Math.abs(Math.min(0, mShadowDx));
 			y += Math.abs(Math.min(0, mShadowDy));
@@ -125,7 +125,7 @@ public class Rectangle extends Shape {
 						mWidth + ((mShadowDx > 0) ? 0 : mShadowDx), mHeight + ((mShadowDy > 0) ? 0 : mShadowDy));
 			}
 		}
-		
+
 		// Draw border
 		if (border != null) {
 			// Map border
@@ -140,7 +140,7 @@ public class Rectangle extends Shape {
 			g2d.fillRect(x - mBorderWidth, y - mBorderWidth, mRectWidth + 2 * mBorderWidth,
 					mRectHeight + 2 * mBorderWidth);
 		}
-		
+
 		// Draw rect
 		g2d.setPaint(fillColour);
 		g2d.fillRect(x, y, mRectWidth, mRectHeight);
@@ -161,13 +161,13 @@ public class Rectangle extends Shape {
 	 */
 	private static Point getPos(Point oldPos, Border border, Shadow shadow) {
 		Point pos = new Point(oldPos.x, oldPos.y);
-		
-		boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
 
 		if (border != null)
 			pos.setLocation(pos.x - border.getBorderWidth(), pos.y - border.getBorderWidth());
-		
+
 		if (shadow != null) {
+			boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
+
 			if (shadow.getShadowDx() < 0)
 				pos.setLocation(pos.x + shadow.getShadowDx() - shadow.getShadowBlurRadius(), pos.y);
 
@@ -177,7 +177,7 @@ public class Rectangle extends Shape {
 			if (centerShadow)
 				pos.setLocation(pos.x - shadow.getShadowBlurRadius(), pos.y - shadow.getShadowBlurRadius());
 		}
-		
+
 		return pos;
 	}
 
@@ -192,14 +192,15 @@ public class Rectangle extends Shape {
 	private static int getWidth(int rectWidth, Border border, Shadow shadow) {
 		int width = rectWidth;
 
-		boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
-
 		if (border != null)
 			width += border.getBorderWidth() * 2;
 
-		if (shadow != null)
+		if (shadow != null) {
+			boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
+
 			width += Math.abs(shadow.getShadowDx())
 					+ (centerShadow ? 2 * shadow.getShadowBlurRadius() : shadow.getShadowBlurRadius());
+		}
 
 		return width;
 	}
@@ -215,14 +216,15 @@ public class Rectangle extends Shape {
 	private static int getHeight(int rectHeight, Border border, Shadow shadow) {
 		int height = rectHeight;
 
-		boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
-
 		if (border != null)
 			height += border.getBorderWidth() * 2;
 
-		if (shadow != null)
+		if (shadow != null) {
+			boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
+
 			height += Math.abs(shadow.getShadowDy())
 					+ (centerShadow ? 2 * shadow.getShadowBlurRadius() : shadow.getShadowBlurRadius());
+		}
 
 		return height;
 	}

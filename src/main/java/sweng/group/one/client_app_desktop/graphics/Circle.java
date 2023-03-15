@@ -4,12 +4,14 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Graphics2D;
+import java.awt.LinearGradientPaint;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 
 import sweng.group.one.client_app_desktop.presentation.Slide;
 
@@ -24,11 +26,12 @@ import java.awt.MultipleGradientPaint.CycleMethod;
  */
 public class Circle extends Shape {
 	// Shadow parameters to be accessed in CanvasOperation
-	private final int radius, containerWidth, shadowDx, shadowDy, shadowBlurRadius;
+	private final int radius, shadowDx, shadowDy, shadowBlurRadius;
 	private final Color shadowColour;
 
 	// Border Parameters to be accessed in CanvasOperation
 	private final Color borderColour;
+	private final int borderWidth;
 
 	// Access to gradient paint for testing
 	private Paint gradient;
@@ -47,96 +50,198 @@ public class Circle extends Shape {
 		// Get bounding box
 		Rectangle r = g2d.getClip().getBounds();
 
-		int borderWidth = 0;
-		int halfBorderWidth = 0;
+		// Map width/height
+		int mWidth = relativeToSlide(width);
+		int mHeight = relativeToSlide(height);
 
-		// Calculate border parameters
-		if (border != null) {
-			borderWidth = (int) (border.getBorderWidth() * (slide.getWidth() / (float) slide.getPointWidth()));
-			halfBorderWidth = borderWidth / 2;
-		}
+		// Adjust bounding box
+		r.setBounds(0, 0, mWidth, mHeight);
 
-		// Map parameters to slide coordinates and apply border padding
-		int radiusPx = radius * Math.min(r.width, r.height) / containerWidth;
-		int diameterPx = radiusPx * 2;
-		int x = r.width / 2 - radiusPx + halfBorderWidth;
-		int y = r.height / 2 - radiusPx + halfBorderWidth;
+		int x = 0;
+		int y = 0;
 
-		// Shadow
+		// Map radius
+		int mRadius = relativeToSlide(radius);
+		int mDiameter = 2 * mRadius;
+
+		// Draw shadow
 		if (shadow != null) {
-			// Shadow colour with 0 alpha
+			// Map shadow and work out positioning
+			int mShadowDx = relativeToSlide(shadowDx);
+			int mShadowDy = relativeToSlide(shadowDy);
+			int mShadowBlurRadius = relativeToSlide(shadowBlurRadius);
+
+			// Pad circle to shadow
+			x += Math.abs(Math.min(0, mShadowDx));
+			y += Math.abs(Math.min(0, mShadowDy));
+
+			if (mShadowDx < 0)
+				x += mShadowBlurRadius;
+			if (mShadowDy < 0)
+				y += mShadowBlurRadius;
+
+			if (mShadowDx == 0 && mShadowDy == 0) {
+				x += mShadowBlurRadius;
+				y += mShadowBlurRadius;
+			}
+
+			// End colour of shadow
 			Color transparent = new Color(shadowColour.getRed(), shadowColour.getBlue(), shadowColour.getGreen(), 0);
 
-			if (shadowDx == 0 && shadowDy == 0) { // Radial gradient
-				// Colour distribution in gradient
+			if (mShadowDx == 0 && mShadowDy == 0) { // Radial gradient
 				float[] dist = { 0.0f, 1.0f };
 
 				Color[] colors = { shadowColour, transparent };
 
-				gradient = new RadialGradientPaint(r.width / 2f, r.height / 2f, r.width * 4 / 7, dist, colors,
-						CycleMethod.NO_CYCLE);
+				gradient = new RadialGradientPaint(mWidth / 2f, mHeight / 2f, Math.min(mWidth, mHeight) / 2, dist,
+						colors, CycleMethod.NO_CYCLE);
 
-				// Map shadow blur
-				int maxBlur = ((r.width - diameterPx) / 2);
-				int shadowBlurMapped = map(shadowBlurRadius, 0, 100, 0, maxBlur);
-
-				// Draw shadow
 				g2d.setPaint(gradient);
-				g2d.fillOval(x - shadowBlurMapped / 2 - halfBorderWidth, y - shadowBlurMapped / 2 - halfBorderWidth,
-						diameterPx + shadowBlurMapped + halfBorderWidth,
-						diameterPx + shadowBlurMapped + halfBorderWidth);
+
+				g2d.fillOval(0, 0, mWidth, mHeight);
 			} else { // Linear gradient
-				int shadowXStart, shadowYStart, shadowXEnd, shadowYEnd;
+				// Work out shadow start position
+				int shadowX, shadowY;
+				if (mShadowDx < 0)
+					shadowX = mWidth - (-mShadowDx + mDiameter + mShadowBlurRadius);
+				else
+					shadowX = mShadowDx;
+
+				if (mShadowDy < 0)
+					shadowY = mHeight - (-mShadowDy + mDiameter + mShadowBlurRadius);
+				else
+					shadowY = mShadowDy;
 
 				// Work out gradient start and end
-				if (shadowDx >= 0) { // Left to right
-					shadowXStart = x;
-					shadowXEnd = x + diameterPx;
+				int shadowXStart, shadowYStart, shadowXEnd, shadowYEnd;
+				if (mShadowDx >= 0) { // Left to right
+					shadowXStart = shadowX;
+					shadowXEnd = shadowX + mDiameter + mShadowBlurRadius;
 				} else { // Right to left
-					shadowXStart = x + diameterPx;
-					shadowXEnd = x;
+					shadowXStart = shadowX + mDiameter + mShadowBlurRadius;
+					shadowXEnd = shadowX;
 				}
 
-				if (shadowDy >= 0) { // Top to bottom
-					shadowYStart = y;
-					shadowYEnd = y + diameterPx;
+				if (mShadowDy >= 0) { // Top to bottom
+					shadowYStart = shadowY;
+					shadowYEnd = shadowY + mDiameter + mShadowBlurRadius;
 				} else { // Bottom to top
-					shadowYStart = y + diameterPx;
-					shadowYEnd = y;
+					shadowYStart = shadowY + mDiameter + mShadowBlurRadius;
+					shadowYEnd = shadowY;
 				}
 
 				gradient = new GradientPaint(shadowXStart, shadowYStart, shadowColour, shadowXEnd, shadowYEnd,
 						transparent);
 
-				// Map shadow blur
-				int maxBlur = ((r.width - diameterPx) / 2) - Math.max(shadowDx, shadowDy);
-				int shadowBlurMapped = map(shadowBlurRadius, 0, 100, 0, maxBlur);
-
-				// Draw shadow
 				g2d.setPaint(gradient);
-				g2d.fillOval(x + shadowDx - ((shadowDx > 0) ? 0 : shadowBlurMapped),
-						y + shadowDy - ((shadowDy > 0) ? 0 : shadowBlurMapped),
-						diameterPx + ((shadowDx > 0) ? shadowBlurMapped : 0),
-						diameterPx + ((shadowDy > 0) ? shadowBlurMapped : 0));
+
+				g2d.fillOval(shadowX, shadowY, mDiameter + mShadowBlurRadius, mDiameter + mShadowBlurRadius);
+
 			}
 		}
 
-		// Circle
-		g2d.setPaint(fillColour);
-		g2d.fillOval(x, y, diameterPx, diameterPx);
-
-		// Border
+		// Draw border
 		if (border != null) {
-			g2d.setStroke(new BasicStroke(borderWidth));
+			// Map border
+			int mBorderWidth = relativeToSlide(borderWidth);
+
+			// Pad circle to border
+			x += mBorderWidth;
+			y += mBorderWidth;
+
+			g2d.setStroke(new BasicStroke(mBorderWidth));
 			g2d.setPaint(borderColour);
-			g2d.drawOval(x - halfBorderWidth, y - halfBorderWidth, diameterPx + halfBorderWidth,
-					diameterPx + halfBorderWidth);
+			g2d.fillOval(x - mBorderWidth, y - mBorderWidth, mDiameter + 2 * mBorderWidth,
+					mDiameter + 2 * mBorderWidth);
 		}
+
+		// Draw circle
+		g2d.setPaint(fillColour);
+		g2d.fillOval(x, y, 2 * mRadius, 2 * mRadius);
 
 		// Reset paint
 		g2d.setPaint(previousPaint);
 		// Reset stroke
 		g2d.setStroke(previousStroke);
+	}
+
+	/**
+	 * Calculates the element's position to accommodate shadow and border
+	 * 
+	 * @param oldPos The circls'e centre position
+	 * @param radius The circle's radius
+	 * @param border The border
+	 * @param shadow The shadow
+	 * @return The element's position
+	 */
+	private static Point getPos(Point oldPos, int radius, Border border, Shadow shadow) {
+		Point pos = new Point(oldPos.x - radius, oldPos.y - radius);
+
+		if (border != null)
+			pos.setLocation(pos.x - border.getBorderWidth(), pos.y - border.getBorderWidth());
+
+		if (shadow != null) {
+			boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
+
+			if (shadow.getShadowDx() < 0)
+				pos.setLocation(pos.x + shadow.getShadowDx() - shadow.getShadowBlurRadius(), pos.y);
+
+			if (shadow.getShadowDy() < 0)
+				pos.setLocation(pos.x, pos.y + shadow.getShadowDy() - shadow.getShadowBlurRadius());
+
+			if (centerShadow)
+				pos.setLocation(pos.x - shadow.getShadowBlurRadius(), pos.y - shadow.getShadowBlurRadius());
+		}
+
+		return pos;
+	}
+
+	/**
+	 * Calculates the element's width to accommodate shadow and border
+	 * 
+	 * @param radius The circle's radius
+	 * @param border The border
+	 * @param shadow The shadow
+	 * @return The element's width
+	 */
+	private static int getWidth(int radius, Border border, Shadow shadow) {
+		int width = 2 * radius;
+
+		if (border != null)
+			width += border.getBorderWidth() * 2;
+
+		if (shadow != null) {
+			boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
+
+			width += Math.abs((int) shadow.getShadowDx())
+					+ (centerShadow ? 2 * shadow.getShadowBlurRadius() : shadow.getShadowBlurRadius());
+		}
+
+		return width;
+	}
+
+	/**
+	 * Calculates the element's height to accommodate shadow and border
+	 * 
+	 * @param radius The circle's radius
+	 * @param border The border
+	 * @param shadow The shadow
+	 * @return The element's height
+	 */
+	private static int getHeight(int radius, Border border, Shadow shadow) {
+		int height = 2 * radius;
+
+		if (border != null)
+			height += border.getBorderWidth() * 2;
+
+		if (shadow != null) {
+			boolean centerShadow = (shadow.getShadowDx() == 0 && shadow.getShadowDy() == 0);
+
+			height += Math.abs((int) shadow.getShadowDy())
+					+ (centerShadow ? 2 * shadow.getShadowBlurRadius() : shadow.getShadowBlurRadius());
+		}
+
+		return height;
 	}
 
 	/**
@@ -152,12 +257,10 @@ public class Circle extends Shape {
 	 * @param shadow     Circle's shadow.
 	 */
 	public Circle(Point pos, int radius, float duration, Slide slide, Color fillColour, Border border, Shadow shadow) {
-		super(new Point(pos.x - radius, pos.y - radius), (int) Math.round(2.5 * radius), (int) Math.round(2.5 * radius),
+		super(getPos(pos, radius, border, shadow), getWidth(radius, border, shadow), getHeight(radius, border, shadow),
 				duration, slide, fillColour, border, shadow);
 
 		this.radius = radius;
-
-		this.containerWidth = (int) Math.round(2.5 * radius);
 
 		if (shadow != null) {
 			// Shadow parameters
@@ -174,10 +277,13 @@ public class Circle extends Shape {
 		}
 
 		// Border parameters
-		if (border != null)
+		if (border != null) {
 			this.borderColour = border.getBorderColour();
-		else // Defaults
+			this.borderWidth = border.getBorderWidth();
+		} else { // Defaults
 			this.borderColour = new Color(0, 0, 0, 0);
+			this.borderWidth = 0;
+		}
 
 		// Draw shape
 		CanvasOperation canvasOperation = g -> {

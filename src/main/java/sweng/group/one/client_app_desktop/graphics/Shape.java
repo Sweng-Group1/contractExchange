@@ -42,6 +42,6 @@ public abstract class Shape extends PresElement {
 	}
 
 	protected int relativeToSlide(int input) {
-		return (int) Math.round(input * slide.getWidth() / (float) slide.getPointWidth());
+		return (int) Math.floor(input * slide.getWidth() / (float) slide.getPointWidth());
 	}
 }
