@@ -32,9 +32,14 @@ public class RectangleTest {
 	private static final int MINUS_SHADOW_DY = -10;
 	private static final int SHADOW_BLUR_RADIUS = 25;
 
+	private int relativeToSlide(int input, Slide slide) {
+		return (int) Math.floor(input * slide.getWidth() / (float) slide.getPointWidth());
+	}
+
 	@Test
 	public void drawsRectangleNoShadowNoBorder() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -57,6 +62,7 @@ public class RectangleTest {
 	@Test
 	public void drawsWithBorder() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -71,24 +77,20 @@ public class RectangleTest {
 		Rectangle classUnderTest = new Rectangle(new Point(0, 0), SLIDE_X, SLIDE_Y, 0, slide, Color.RED, border, null);
 		classUnderTest.drawRect(g2d);
 
-		int calculatedBorderWidth = (int) (border.getBorderWidth()
-				* (slide.getWidth() / (float) slide.getPointWidth()));
-		int calculatedHalfBorderWidth = calculatedBorderWidth / 2;
-		verify(g2d, times(1)).setStroke(new BasicStroke(calculatedBorderWidth));
+		verify(g2d, times(1)).setStroke(new BasicStroke(BORDER_W));
 		verify(g2d, times(1)).setPaint(Color.BLACK);
 
 		// Border
-		verify(g2d, times(1)).drawRect(calculatedHalfBorderWidth, calculatedHalfBorderWidth,
-				SLIDE_X - 2 * calculatedHalfBorderWidth, SLIDE_Y - 2 * calculatedHalfBorderWidth);
+		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X + 2 * BORDER_W, SLIDE_Y + 2 * BORDER_W);
 
 		// Rectangle
-		verify(g2d, times(1)).fillRect(calculatedHalfBorderWidth, calculatedHalfBorderWidth,
-				SLIDE_X - 2 * calculatedHalfBorderWidth, SLIDE_Y - 2 * calculatedHalfBorderWidth);
+		verify(g2d, times(1)).fillRect(BORDER_W, BORDER_W, SLIDE_X, SLIDE_Y);
 	}
 
 	@Test
 	public void drawsWithShadowBothPositive() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -103,21 +105,20 @@ public class RectangleTest {
 		Rectangle classUnderTest = new Rectangle(new Point(0, 0), SLIDE_X, SLIDE_Y, 0, slide, Color.RED, null, shadow);
 		classUnderTest.drawRect(g2d);
 
-		// / 4 and * 3 / 4 because shadow blur radius is 25% of width
-
 		// Shadow
-		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X * 3 / 4 - PLUS_SHADOW_DX,
-				SLIDE_Y - (SLIDE_X / 4) - PLUS_SHADOW_DY);
+		verify(g2d, times(1)).fillRect(PLUS_SHADOW_DX, PLUS_SHADOW_DY, SLIDE_X + PLUS_SHADOW_DX + SHADOW_BLUR_RADIUS,
+				SLIDE_Y + PLUS_SHADOW_DY + SHADOW_BLUR_RADIUS);
 
 		// Rectangle
-		verify(g2d, times(1)).fillRect(PLUS_SHADOW_DX, PLUS_SHADOW_DY, SLIDE_X, SLIDE_Y);
+		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X, SLIDE_Y);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(0, 0, Color.CYAN, SLIDE_X, SLIDE_Y, transparent);
+			GradientPaint gradient = new GradientPaint(0, 0, Color.CYAN, SLIDE_X + PLUS_SHADOW_DX + SHADOW_BLUR_RADIUS,
+					SLIDE_Y + PLUS_SHADOW_DY + SHADOW_BLUR_RADIUS, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
@@ -130,6 +131,7 @@ public class RectangleTest {
 	@Test
 	public void drawsWithShadowBothNegative() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -147,18 +149,19 @@ public class RectangleTest {
 		// / 4 and * 3 / 4 because shadow blur radius is 25% of width
 
 		// Shadow
-		verify(g2d, times(1)).fillRect(SLIDE_X / 4 - MINUS_SHADOW_DX, SLIDE_X / 4 - MINUS_SHADOW_DY,
-				SLIDE_X * 3 / 4 + MINUS_SHADOW_DX, SLIDE_Y - (SLIDE_X / 4) + MINUS_SHADOW_DY);
+		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X + SHADOW_BLUR_RADIUS, SLIDE_Y + SHADOW_BLUR_RADIUS);
 
 		// Rectangle
-		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X + MINUS_SHADOW_DX, SLIDE_Y + MINUS_SHADOW_DY);
+		verify(g2d, times(1)).fillRect(-MINUS_SHADOW_DX + SHADOW_BLUR_RADIUS, -MINUS_SHADOW_DY + SHADOW_BLUR_RADIUS,
+				SLIDE_X, SLIDE_Y);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(SLIDE_X, SLIDE_Y, Color.CYAN, 0, 0, transparent);
+			GradientPaint gradient = new GradientPaint(SLIDE_X + SHADOW_BLUR_RADIUS - MINUS_SHADOW_DX, SLIDE_Y + SHADOW_BLUR_RADIUS - MINUS_SHADOW_DY, Color.CYAN, 0,
+					0, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
@@ -171,6 +174,7 @@ public class RectangleTest {
 	@Test
 	public void drawsWithShadowBothZero() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -184,16 +188,16 @@ public class RectangleTest {
 		Shadow shadow = new Shadow(Color.CYAN, 0, 0, SHADOW_BLUR_RADIUS);
 		Rectangle classUnderTest = new Rectangle(new Point(0, 0), SLIDE_X, SLIDE_Y, 0, slide, Color.RED, null, shadow);
 		classUnderTest.drawRect(g2d);
-
-		int mappedBlurRadius = SLIDE_X / 4; // 25%
-		int halfMappedBlurRadius = mappedBlurRadius / 2;
+		
+		int mWidth = SLIDE_X + SHADOW_BLUR_RADIUS * 2;
+		int mHeight = SLIDE_Y + SHADOW_BLUR_RADIUS * 2;
 
 		// Rectangle
-		verify(g2d, times(1)).fillRect(halfMappedBlurRadius, halfMappedBlurRadius, SLIDE_X - mappedBlurRadius,
-				SLIDE_Y - mappedBlurRadius);
+		verify(g2d, times(1)).fillRect(SHADOW_BLUR_RADIUS, SHADOW_BLUR_RADIUS, SLIDE_X,
+				SLIDE_Y);
 
 		// Shadow
-		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X, SLIDE_Y);
+		verify(g2d, times(1)).fillOval(0, 0, mWidth, mHeight);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof RadialGradientPaint) {
@@ -203,8 +207,8 @@ public class RectangleTest {
 			// Colour distribution in gradient
 			float[] dist = { 0.0f, 1.0f };
 			Color[] colors = { Color.CYAN, transparent };
-			RadialGradientPaint gradient = new RadialGradientPaint(SLIDE_X / 2f, SLIDE_Y / 2f,
-					Math.max(SLIDE_X, SLIDE_Y) * 4 / 7, dist, colors, CycleMethod.NO_CYCLE);
+			RadialGradientPaint gradient = new RadialGradientPaint(mWidth / 2f, mHeight / 2f,
+					Math.min(mHeight, mWidth) / 2, dist, colors, CycleMethod.NO_CYCLE);
 
 			assertArrayEquals(gradient.getColors(), rgp.getColors());
 			assertEquals(gradient.getRadius(), rgp.getRadius(), 0.001);
@@ -216,6 +220,7 @@ public class RectangleTest {
 	@Test
 	public void drawsWithShadowDyZero() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -230,20 +235,21 @@ public class RectangleTest {
 		Rectangle classUnderTest = new Rectangle(new Point(0, 0), SLIDE_X, SLIDE_Y, 0, slide, Color.RED, null, shadow);
 		classUnderTest.drawRect(g2d);
 
-		// / 4 and * 3 / 4 because shadow blur radius is 25% of width
-
 		// Rectangle
-		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X * 3 / 4 - PLUS_SHADOW_DX, SLIDE_Y - (SLIDE_X / 4));
+		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X, SLIDE_Y);
+
+		int mWidth = SLIDE_X + SHADOW_BLUR_RADIUS + PLUS_SHADOW_DX;
+		int mHeight = SLIDE_Y + SHADOW_BLUR_RADIUS;
 
 		// Shadow
-		verify(g2d, times(1)).fillRect(PLUS_SHADOW_DX, 0, SLIDE_X, SLIDE_Y);
+		verify(g2d, times(1)).fillRect(PLUS_SHADOW_DX, 0, mWidth, mHeight);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(0, 0, Color.CYAN, SLIDE_X, SLIDE_Y, transparent);
+			GradientPaint gradient = new GradientPaint(0, 0, Color.CYAN, mWidth, mHeight, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
@@ -256,6 +262,7 @@ public class RectangleTest {
 	@Test
 	public void drawsWithShadowDxZero() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -270,20 +277,22 @@ public class RectangleTest {
 		Rectangle classUnderTest = new Rectangle(new Point(0, 0), SLIDE_X, SLIDE_Y, 0, slide, Color.RED, null, shadow);
 		classUnderTest.drawRect(g2d);
 
-		// (/ 4) and (* 3 / 4) because shadow blur radius is 25% of width
 
 		// Rectangle
-		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X - (SLIDE_X / 4), SLIDE_Y - (SLIDE_X / 4) - PLUS_SHADOW_DY);
+		verify(g2d, times(1)).fillRect(0, 0, SLIDE_X, SLIDE_Y);
+		
+		int mWidth = SLIDE_X + SHADOW_BLUR_RADIUS;
+		int mHeight = SLIDE_Y + SHADOW_BLUR_RADIUS + PLUS_SHADOW_DY;
 
 		// Shadow
-		verify(g2d, times(1)).fillRect(0, PLUS_SHADOW_DY, SLIDE_X, SLIDE_Y);
+		verify(g2d, times(1)).fillRect(0, PLUS_SHADOW_DY, mWidth, mHeight);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(0, 0, Color.CYAN, SLIDE_X, SLIDE_Y, transparent);
+			GradientPaint gradient = new GradientPaint(0, 0, Color.CYAN, mWidth, mHeight, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());

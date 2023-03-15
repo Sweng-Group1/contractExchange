@@ -36,6 +36,7 @@ public class CircleTest {
 	@Test
 	public void drawsCircleNoShadowNoBorder() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -46,21 +47,12 @@ public class CircleTest {
 		when(g2d.getStroke()).thenReturn(bs);
 		when(g2d.getPaint()).thenReturn(p);
 
-		int radius = SLIDE_X / 2;
-		int containerWidth = (int) Math.round(2.5 * radius);
-
 		Circle classUnderTest = new Circle(new Point(SLIDE_X / 2, SLIDE_Y / 2), SLIDE_X / 2, 0, slide, Color.RED, null,
 				null);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int x = SLIDE_X / 2 - radiusPx;
-		int y = SLIDE_Y / 2 - radiusPx;
-
 		verify(g2d, times(1)).setPaint(Color.RED);
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X, SLIDE_X);
 		verify(g2d, times(1)).setPaint(p);
 		verify(g2d, times(1)).setStroke(bs);
 	}
@@ -68,6 +60,7 @@ public class CircleTest {
 	@Test
 	public void drawsWithBorder() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -79,38 +72,24 @@ public class CircleTest {
 		when(g2d.getPaint()).thenReturn(p);
 
 		Border border = new Border(Color.BLACK, BORDER_W);
-
-		int radius = SLIDE_X / 2;
-		int containerWidth = (int) Math.round(2.5 * radius);
-
 		Circle classUnderTest = new Circle(new Point(SLIDE_X / 2, SLIDE_Y / 2), SLIDE_X / 2, 0, slide, Color.RED,
 				border, null);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int calculatedBorderWidth = (int) (border.getBorderWidth()
-				* (slide.getWidth() / (float) slide.getPointWidth()));
-		int calculatedHalfBorderWidth = calculatedBorderWidth / 2;
-
-		int x = SLIDE_X / 2 - radiusPx + calculatedHalfBorderWidth;
-		int y = SLIDE_Y / 2 - radiusPx + calculatedHalfBorderWidth;
-
-		verify(g2d, times(1)).setStroke(new BasicStroke(calculatedBorderWidth));
+		verify(g2d, times(1)).setStroke(new BasicStroke(BORDER_W));
 		verify(g2d, times(1)).setPaint(Color.BLACK);
 
 		// Border
-		verify(g2d, times(1)).drawOval(x - calculatedHalfBorderWidth, y - calculatedHalfBorderWidth,
-				diameterPx + calculatedHalfBorderWidth, diameterPx + calculatedHalfBorderWidth);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X + 2 * BORDER_W, SLIDE_X + 2 * BORDER_W);
 
 		// Circle
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(BORDER_W, BORDER_W, SLIDE_X, SLIDE_X);
 	}
 
 	@Test
 	public void drawsWithShadowBothPositive() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -122,35 +101,25 @@ public class CircleTest {
 		when(g2d.getPaint()).thenReturn(p);
 
 		Shadow shadow = new Shadow(Color.CYAN, PLUS_SHADOW_DX, PLUS_SHADOW_DY, SHADOW_BLUR_RADIUS);
-		int radius = SLIDE_X / 2;
-		int containerWidth = (int) Math.round(2.5 * radius);
-
 		Circle classUnderTest = new Circle(new Point(SLIDE_X / 2, SLIDE_Y / 2), SLIDE_X / 2, 0, slide, Color.RED, null,
 				shadow);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int x = SLIDE_X / 2 - radiusPx;
-		int y = SLIDE_Y / 2 - radiusPx;
-
-		int maxBlur = ((SLIDE_X - diameterPx) / 2) - PLUS_SHADOW_DY;
-		int shadowBlurMapped = maxBlur * SHADOW_BLUR_RADIUS / 100; // Shortened map function
-
 		// Circle
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X, SLIDE_X);
 
 		// Shadow
-		verify(g2d, times(1)).fillOval(x + PLUS_SHADOW_DX, y + PLUS_SHADOW_DY, diameterPx + shadowBlurMapped,
-				diameterPx + shadowBlurMapped);
+		verify(g2d, times(1)).fillOval(PLUS_SHADOW_DX, PLUS_SHADOW_DY, SLIDE_X + SHADOW_BLUR_RADIUS,
+				SLIDE_X + SHADOW_BLUR_RADIUS);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(x, y, Color.CYAN, x + diameterPx, y + diameterPx, transparent);
+			GradientPaint gradient = new GradientPaint(PLUS_SHADOW_DX, PLUS_SHADOW_DY, Color.CYAN,
+					PLUS_SHADOW_DX + SLIDE_X + SHADOW_BLUR_RADIUS, PLUS_SHADOW_DY + SLIDE_X + SHADOW_BLUR_RADIUS,
+					transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
@@ -163,6 +132,7 @@ public class CircleTest {
 	@Test
 	public void drawsWithShadowBothNegative() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -174,35 +144,28 @@ public class CircleTest {
 		when(g2d.getPaint()).thenReturn(p);
 
 		Shadow shadow = new Shadow(Color.CYAN, MINUS_SHADOW_DX, MINUS_SHADOW_DY, SHADOW_BLUR_RADIUS);
-		int radius = SLIDE_X / 2;
-		int containerWidth = (int) Math.round(2.5 * radius);
-
 		Circle classUnderTest = new Circle(new Point(SLIDE_X / 2, SLIDE_Y / 2), SLIDE_X / 2, 0, slide, Color.RED, null,
 				shadow);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int x = SLIDE_X / 2 - radiusPx;
-		int y = SLIDE_Y / 2 - radiusPx;
-
-		int maxBlur = ((SLIDE_X - diameterPx) / 2) - MINUS_SHADOW_DX;
-		int shadowBlurMapped = maxBlur * SHADOW_BLUR_RADIUS / 100; // Shortened map function
-
 		// Circle
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(SHADOW_BLUR_RADIUS - MINUS_SHADOW_DX, SHADOW_BLUR_RADIUS - MINUS_SHADOW_DY,
+				SLIDE_X, SLIDE_X);
 
 		// Shadow
-		verify(g2d, times(1)).fillOval(x + MINUS_SHADOW_DX - shadowBlurMapped, y + MINUS_SHADOW_DY - shadowBlurMapped,
-				diameterPx, diameterPx);
+		int mWidth = SHADOW_BLUR_RADIUS + SLIDE_X - MINUS_SHADOW_DX;
+		int mHeight = SHADOW_BLUR_RADIUS + SLIDE_X - MINUS_SHADOW_DY;
+		int shadowX = mWidth - (-MINUS_SHADOW_DX + SLIDE_X + SHADOW_BLUR_RADIUS);
+		int shadowY = mHeight - (-MINUS_SHADOW_DY + SLIDE_X + SHADOW_BLUR_RADIUS);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X + SHADOW_BLUR_RADIUS, SLIDE_X + SHADOW_BLUR_RADIUS);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(x + diameterPx, y + diameterPx, Color.CYAN, x, y, transparent);
+			GradientPaint gradient = new GradientPaint(SLIDE_X + SHADOW_BLUR_RADIUS, SLIDE_X + SHADOW_BLUR_RADIUS,
+					Color.CYAN, 0, 0, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
@@ -215,6 +178,7 @@ public class CircleTest {
 	@Test
 	public void drawsWithShadowBothZero() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -226,28 +190,18 @@ public class CircleTest {
 		when(g2d.getPaint()).thenReturn(p);
 
 		Shadow shadow = new Shadow(Color.CYAN, 0, 0, SHADOW_BLUR_RADIUS);
-		int radius = SLIDE_X / 2;
-		int containerWidth = (int) Math.round(2.5 * radius);
-
 		Circle classUnderTest = new Circle(new Point(SLIDE_X / 2, SLIDE_Y / 2), SLIDE_X / 2, 0, slide, Color.RED, null,
 				shadow);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int x = SLIDE_X / 2 - radiusPx;
-		int y = SLIDE_Y / 2 - radiusPx;
-
-		int maxBlur = ((SLIDE_X - diameterPx) / 2);
-		int shadowBlurMapped = maxBlur * SHADOW_BLUR_RADIUS / 100; // Shortened map function
+		int mWidth = SLIDE_X + 2 * SHADOW_BLUR_RADIUS;
+		int mHeight = mWidth;
 
 		// Circle
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(SHADOW_BLUR_RADIUS, SHADOW_BLUR_RADIUS, SLIDE_X, SLIDE_X);
 
 		// Shadow
-		verify(g2d, times(1)).fillOval(x - shadowBlurMapped / 2, y - shadowBlurMapped / 2,
-				diameterPx + shadowBlurMapped, diameterPx + shadowBlurMapped);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X + 2 * SHADOW_BLUR_RADIUS, SLIDE_X + 2 * SHADOW_BLUR_RADIUS);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof RadialGradientPaint) {
@@ -257,8 +211,8 @@ public class CircleTest {
 			// Colour distribution in gradient
 			float[] dist = { 0.0f, 1.0f };
 			Color[] colors = { Color.CYAN, transparent };
-			RadialGradientPaint gradient = new RadialGradientPaint(SLIDE_X / 2f, SLIDE_Y / 2f,
-					Math.max(SLIDE_X, SLIDE_Y) * 4 / 7, dist, colors, CycleMethod.NO_CYCLE);
+			RadialGradientPaint gradient = new RadialGradientPaint(mWidth / 2f, mHeight / 2f,
+					Math.min(mWidth, mHeight) / 2, dist, colors, CycleMethod.NO_CYCLE);
 
 			assertArrayEquals(gradient.getColors(), rgp.getColors());
 			assertEquals(gradient.getRadius(), rgp.getRadius(), 0.001);
@@ -270,6 +224,7 @@ public class CircleTest {
 	@Test
 	public void drawsWithShadowDyZero() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -281,35 +236,23 @@ public class CircleTest {
 		when(g2d.getPaint()).thenReturn(p);
 
 		Shadow shadow = new Shadow(Color.CYAN, PLUS_SHADOW_DX, 0, SHADOW_BLUR_RADIUS);
-		int radius = SLIDE_X / 2;
-		int containerWidth = (int) Math.round(2.5 * radius);
-
 		Circle classUnderTest = new Circle(new Point(SLIDE_X / 2, SLIDE_Y / 2), SLIDE_X / 2, 0, slide, Color.RED, null,
 				shadow);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int x = SLIDE_X / 2 - radiusPx;
-		int y = SLIDE_Y / 2 - radiusPx;
-
-		int maxBlur = ((SLIDE_X - diameterPx) / 2) - PLUS_SHADOW_DX;
-		int shadowBlurMapped = maxBlur * SHADOW_BLUR_RADIUS / 100; // Shortened map function
-
 		// Circle
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X, SLIDE_X);
 
 		// Shadow
-		verify(g2d, times(1)).fillOval(x + PLUS_SHADOW_DX, y - shadowBlurMapped, diameterPx + shadowBlurMapped,
-				diameterPx);
+		verify(g2d, times(1)).fillOval(PLUS_SHADOW_DX, 0, SLIDE_X + SHADOW_BLUR_RADIUS, SLIDE_X + SHADOW_BLUR_RADIUS);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(x, y, Color.CYAN, x + diameterPx, y + diameterPx, transparent);
+			GradientPaint gradient = new GradientPaint(PLUS_SHADOW_DX, 0, Color.CYAN,
+					SLIDE_X + SHADOW_BLUR_RADIUS + PLUS_SHADOW_DX, SLIDE_X + SHADOW_BLUR_RADIUS, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
@@ -322,6 +265,7 @@ public class CircleTest {
 	@Test
 	public void drawsWithShadowDxZero() {
 		Slide slide = new Slide(SLIDE_X, SLIDE_Y);
+		slide.setSize(SLIDE_X, SLIDE_Y);
 
 		// G2d Mock
 		BasicStroke bs = new BasicStroke();
@@ -340,28 +284,19 @@ public class CircleTest {
 				shadow);
 		classUnderTest.drawCircle(g2d);
 
-		int radiusPx = radius * Math.min(SLIDE_X, SLIDE_Y) / containerWidth;
-		int diameterPx = radiusPx * 2;
-
-		int x = SLIDE_X / 2 - radiusPx;
-		int y = SLIDE_Y / 2 - radiusPx;
-
-		int maxBlur = ((SLIDE_X - diameterPx) / 2) - PLUS_SHADOW_DY;
-		int shadowBlurMapped = maxBlur * SHADOW_BLUR_RADIUS / 100; // Shortened map function
-
 		// Circle
-		verify(g2d, times(1)).fillOval(x, y, diameterPx, diameterPx);
+		verify(g2d, times(1)).fillOval(0, 0, SLIDE_X, SLIDE_X);
 
 		// Shadow
-		verify(g2d, times(1)).fillOval(x - shadowBlurMapped, y + PLUS_SHADOW_DY, diameterPx,
-				diameterPx + shadowBlurMapped);
+		verify(g2d, times(1)).fillOval(0, PLUS_SHADOW_DY, SLIDE_X + SHADOW_BLUR_RADIUS, SLIDE_X + SHADOW_BLUR_RADIUS);
 
 		Paint calculatedGradient = classUnderTest.getGradient();
 		if (calculatedGradient instanceof GradientPaint) {
 			GradientPaint gp = (GradientPaint) calculatedGradient;
 
 			Color transparent = new Color(Color.CYAN.getRed(), Color.CYAN.getBlue(), Color.CYAN.getGreen(), 0);
-			GradientPaint gradient = new GradientPaint(x, y, Color.CYAN, x + diameterPx, y + diameterPx, transparent);
+			GradientPaint gradient = new GradientPaint(0, PLUS_SHADOW_DY, Color.CYAN, SLIDE_X + SHADOW_BLUR_RADIUS,
+					SLIDE_X + SHADOW_BLUR_RADIUS + PLUS_SHADOW_DY, transparent);
 
 			assertEquals(gradient.getColor1(), gp.getColor1());
 			assertEquals(gradient.getColor2(), gp.getColor2());
